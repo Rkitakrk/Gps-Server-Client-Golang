@@ -1,0 +1,8 @@
+extensions = [
+    'sphinxcontrib.golangdomain',
+    'autoapi.extension',
+]
+autoapi_type = 'go'
+
+autoapi_dirs = ['./']
+

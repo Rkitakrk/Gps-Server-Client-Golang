@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#375EAB">
+
+  <title>src/searchandfind/cmd/web/main.go - The Go Programming Language</title>
+
+<link type="text/css" rel="stylesheet" href="../../../../lib/godoc/style.css">
+
+
+<script>window.initFuncs = [];</script>
+
+<script src="../../../../lib/godoc/jquery.js" defer></script>
+
+
+
+<script>var goVersion = "go1.14";</script>
+<script src="../../../../lib/godoc/godocs.js" defer></script>
+</head>
+<body>
+
+<div id='lowframe' style="position: fixed; bottom: 0; left: 0; height: 0; width: 100%; border-top: thin solid grey; background-color: white; overflow: auto;">
+...
+</div><!-- #lowframe -->
+
+<div id="topbar" class="wide"><div class="container">
+<div class="top-heading" id="heading-wide"><a href="http://localhost:6060/">The Go Programming Language</a></div>
+<div class="top-heading" id="heading-narrow"><a href="http://localhost:6060/">Go</a></div>
+<a href="main.go.html#" id="menu-button"><span id="menu-button-arrow">&#9661;</span></a>
+<form method="GET" action="http://localhost:6060/search">
+<div id="menu">
+<a href="http://localhost:6060/doc/">Documents</a>
+<a href="http://localhost:6060/pkg/">Packages</a>
+<a href="http://localhost:6060/project/">The Project</a>
+<a href="http://localhost:6060/help/">Help</a>
+
+<a href="http://localhost:6060/blog/">Blog</a>
+
+
+<span class="search-box"><input type="search" id="search" name="q" placeholder="Search" aria-label="Search" required><button type="submit"><span><!-- magnifying glass: --><svg width="24" height="24" viewBox="0 0 24 24"><title>submit search</title><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></button></span>
+</div>
+</form>
+
+</div></div>
+
+
+
+<div id="page" class="wide">
+<div class="container">
+
+
+  <h1>
+    Source file
+    <a href="http://localhost:6060/src">src</a>/<a href="http://localhost:6060/src/searchandfind">searchandfind</a>/<a href="../../cmd.html">cmd</a>/<a href="../web.html">web</a>/<span class="text-muted">main.go</span>
+  </h1>
+
+
+
+
+
+  <h2>
+    Documentation: <a href="http://localhost:6060/pkg/searchandfind/cmd/web">searchandfind/cmd/web</a>
+  </h2>
+
+
+
+<div id="nav"></div>
+
+
+<script type='text/javascript'>document.ANALYSIS_DATA = null;</script>
+<pre><span id="L1" class="ln">     1&nbsp;&nbsp;</span>package main
+<span id="L2" class="ln">     2&nbsp;&nbsp;</span>
+<span id="L3" class="ln">     3&nbsp;&nbsp;</span>import (
+<span id="L4" class="ln">     4&nbsp;&nbsp;</span>	&#34;context&#34;
+<span id="L5" class="ln">     5&nbsp;&nbsp;</span>	&#34;crypto/tls&#34;
+<span id="L6" class="ln">     6&nbsp;&nbsp;</span>	&#34;flag&#34;
+<span id="L7" class="ln">     7&nbsp;&nbsp;</span>	&#34;fmt&#34;
+<span id="L8" class="ln">     8&nbsp;&nbsp;</span>	&#34;html/template&#34;
+<span id="L9" class="ln">     9&nbsp;&nbsp;</span>	&#34;log&#34;
+<span id="L10" class="ln">    10&nbsp;&nbsp;</span>	&#34;net/http&#34;
+<span id="L11" class="ln">    11&nbsp;&nbsp;</span>	&#34;os&#34;
+<span id="L12" class="ln">    12&nbsp;&nbsp;</span>	&#34;searchandfind/pkg/models/mongoDB&#34;
+<span id="L13" class="ln">    13&nbsp;&nbsp;</span>	&#34;time&#34;
+<span id="L14" class="ln">    14&nbsp;&nbsp;</span>
+<span id="L15" class="ln">    15&nbsp;&nbsp;</span>	&#34;github.com/golangcollege/sessions&#34;
+<span id="L16" class="ln">    16&nbsp;&nbsp;</span>	_ &#34;github.com/readthedocs/godocjson&#34;
+<span id="L17" class="ln">    17&nbsp;&nbsp;</span>	&#34;go.mongodb.org/mongo-driver/mongo&#34;
+<span id="L18" class="ln">    18&nbsp;&nbsp;</span>	&#34;go.mongodb.org/mongo-driver/mongo/options&#34;
+<span id="L19" class="ln">    19&nbsp;&nbsp;</span>)
+<span id="L20" class="ln">    20&nbsp;&nbsp;</span>
+<span id="L21" class="ln">    21&nbsp;&nbsp;</span>type contextKey string
+<span id="L22" class="ln">    22&nbsp;&nbsp;</span>
+<span id="L23" class="ln">    23&nbsp;&nbsp;</span>var contextKeyUser = contextKey(&#34;user&#34;)
+<span id="L24" class="ln">    24&nbsp;&nbsp;</span>
+<span id="L25" class="ln">    25&nbsp;&nbsp;</span>type application struct {
+<span id="L26" class="ln">    26&nbsp;&nbsp;</span>	errorLog      *log.Logger
+<span id="L27" class="ln">    27&nbsp;&nbsp;</span>	infoLog       *log.Logger
+<span id="L28" class="ln">    28&nbsp;&nbsp;</span>	session       *sessions.Session
+<span id="L29" class="ln">    29&nbsp;&nbsp;</span>	posts         *mongoDB.PostModel
+<span id="L30" class="ln">    30&nbsp;&nbsp;</span>	users         *mongoDB.UserModel
+<span id="L31" class="ln">    31&nbsp;&nbsp;</span>	templateCache map[string]*template.Template
+<span id="L32" class="ln">    32&nbsp;&nbsp;</span>}
+<span id="L33" class="ln">    33&nbsp;&nbsp;</span>
+<span id="L34" class="ln">    34&nbsp;&nbsp;</span>func main() {
+<span id="L35" class="ln">    35&nbsp;&nbsp;</span>
+<span id="L36" class="ln">    36&nbsp;&nbsp;</span>	addr := flag.String(&#34;addr&#34;, &#34;:8000&#34;, &#34;HTTP network address&#34;)
+<span id="L37" class="ln">    37&nbsp;&nbsp;</span>	dsn := flag.String(&#34;dsn&#34;, &#34;mongodb://localhost:27017&#34;, &#34;MongoDB data source name&#34;)
+<span id="L38" class="ln">    38&nbsp;&nbsp;</span>	secret := flag.String(&#34;secret&#34;, &#34;s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge&#34;, &#34;Secret key&#34;)
+<span id="L39" class="ln">    39&nbsp;&nbsp;</span>	flag.Parse()
+<span id="L40" class="ln">    40&nbsp;&nbsp;</span>
+<span id="L41" class="ln">    41&nbsp;&nbsp;</span>	infoLog := log.New(os.Stdout, &#34;INFO\t&#34;, log.Ldate|log.Ltime)
+<span id="L42" class="ln">    42&nbsp;&nbsp;</span>	errorLog := log.New(os.Stderr, &#34;ERROR\t&#34;, log.Ldate|log.Ltime|log.Lshortfile)
+<span id="L43" class="ln">    43&nbsp;&nbsp;</span>
+<span id="L44" class="ln">    44&nbsp;&nbsp;</span>	db, err := openMongoDB(*dsn)
+<span id="L45" class="ln">    45&nbsp;&nbsp;</span>	if err != nil {
+<span id="L46" class="ln">    46&nbsp;&nbsp;</span>		errorLog.Fatal(err)
+<span id="L47" class="ln">    47&nbsp;&nbsp;</span>	}
+<span id="L48" class="ln">    48&nbsp;&nbsp;</span>	defer db.Disconnect(context.TODO())
+<span id="L49" class="ln">    49&nbsp;&nbsp;</span>
+<span id="L50" class="ln">    50&nbsp;&nbsp;</span>	templateCache, err := newTemplateCache(&#34;./ui/html/&#34;)
+<span id="L51" class="ln">    51&nbsp;&nbsp;</span>	if err != nil {
+<span id="L52" class="ln">    52&nbsp;&nbsp;</span>		errorLog.Fatal(err)
+<span id="L53" class="ln">    53&nbsp;&nbsp;</span>	}
+<span id="L54" class="ln">    54&nbsp;&nbsp;</span>
+<span id="L55" class="ln">    55&nbsp;&nbsp;</span>	session := sessions.New([]byte(*secret))
+<span id="L56" class="ln">    56&nbsp;&nbsp;</span>	session.Lifetime = 12 * time.Hour
+<span id="L57" class="ln">    57&nbsp;&nbsp;</span>	session.Secure = false
+<span id="L58" class="ln">    58&nbsp;&nbsp;</span>	session.SameSite = http.SameSiteStrictMode
+<span id="L59" class="ln">    59&nbsp;&nbsp;</span>
+<span id="L60" class="ln">    60&nbsp;&nbsp;</span>	app := &amp;application{
+<span id="L61" class="ln">    61&nbsp;&nbsp;</span>		errorLog:      errorLog,
+<span id="L62" class="ln">    62&nbsp;&nbsp;</span>		infoLog:       infoLog,
+<span id="L63" class="ln">    63&nbsp;&nbsp;</span>		session:       session,
+<span id="L64" class="ln">    64&nbsp;&nbsp;</span>		posts:         &amp;mongoDB.PostModel{DB: db},
+<span id="L65" class="ln">    65&nbsp;&nbsp;</span>		users:         &amp;mongoDB.UserModel{DB: db},
+<span id="L66" class="ln">    66&nbsp;&nbsp;</span>		templateCache: templateCache,
+<span id="L67" class="ln">    67&nbsp;&nbsp;</span>	}
+<span id="L68" class="ln">    68&nbsp;&nbsp;</span>
+<span id="L69" class="ln">    69&nbsp;&nbsp;</span>	tlsConfig := &amp;tls.Config{
+<span id="L70" class="ln">    70&nbsp;&nbsp;</span>		PreferServerCipherSuites: true,
+<span id="L71" class="ln">    71&nbsp;&nbsp;</span>		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256},
+<span id="L72" class="ln">    72&nbsp;&nbsp;</span>	}
+<span id="L73" class="ln">    73&nbsp;&nbsp;</span>
+<span id="L74" class="ln">    74&nbsp;&nbsp;</span>	srv := &amp;http.Server{
+<span id="L75" class="ln">    75&nbsp;&nbsp;</span>		Addr:         *addr,
+<span id="L76" class="ln">    76&nbsp;&nbsp;</span>		ErrorLog:     errorLog,
+<span id="L77" class="ln">    77&nbsp;&nbsp;</span>		Handler:      app.routes(),
+<span id="L78" class="ln">    78&nbsp;&nbsp;</span>		TLSConfig:    tlsConfig,
+<span id="L79" class="ln">    79&nbsp;&nbsp;</span>		IdleTimeout:  time.Minute,
+<span id="L80" class="ln">    80&nbsp;&nbsp;</span>		ReadTimeout:  5 * time.Second,
+<span id="L81" class="ln">    81&nbsp;&nbsp;</span>		WriteTimeout: 10 * time.Second,
+<span id="L82" class="ln">    82&nbsp;&nbsp;</span>	}
+<span id="L83" class="ln">    83&nbsp;&nbsp;</span>
+<span id="L84" class="ln">    84&nbsp;&nbsp;</span>	infoLog.Printf(&#34;Starting on: %s&#34;, *addr)
+<span id="L85" class="ln">    85&nbsp;&nbsp;</span>	<span class="comment">// err = srv.ListenAndServe()</span>
+<span id="L86" class="ln">    86&nbsp;&nbsp;</span>	err = srv.ListenAndServeTLS(&#34;./tls/cert.pem&#34;, &#34;./tls/key.pem&#34;)
+<span id="L87" class="ln">    87&nbsp;&nbsp;</span>	errorLog.Fatal(err)
+<span id="L88" class="ln">    88&nbsp;&nbsp;</span>
+<span id="L89" class="ln">    89&nbsp;&nbsp;</span>}
+<span id="L90" class="ln">    90&nbsp;&nbsp;</span>
+<span id="L91" class="ln">    91&nbsp;&nbsp;</span>func openMongoDB(dsn string) (*mongo.Client, error) {
+<span id="L92" class="ln">    92&nbsp;&nbsp;</span>	clientOptions := options.Client().ApplyURI(dsn)
+<span id="L93" class="ln">    93&nbsp;&nbsp;</span>	client, err := mongo.Connect(context.TODO(), clientOptions)
+<span id="L94" class="ln">    94&nbsp;&nbsp;</span>	if err != nil {
+<span id="L95" class="ln">    95&nbsp;&nbsp;</span>		return nil, err
+<span id="L96" class="ln">    96&nbsp;&nbsp;</span>	}
+<span id="L97" class="ln">    97&nbsp;&nbsp;</span>	fmt.Println(&#34;Connected to MongoDB!&#34;)
+<span id="L98" class="ln">    98&nbsp;&nbsp;</span>
+<span id="L99" class="ln">    99&nbsp;&nbsp;</span>	err = client.Ping(context.TODO(), nil)
+<span id="L100" class="ln">   100&nbsp;&nbsp;</span>	if err != nil {
+<span id="L101" class="ln">   101&nbsp;&nbsp;</span>		return nil, err
+<span id="L102" class="ln">   102&nbsp;&nbsp;</span>	}
+<span id="L103" class="ln">   103&nbsp;&nbsp;</span>
+<span id="L104" class="ln">   104&nbsp;&nbsp;</span>	return client, nil
+<span id="L105" class="ln">   105&nbsp;&nbsp;</span>}
+<span id="L106" class="ln">   106&nbsp;&nbsp;</span>
+</pre><p><a href="main.go%3Fm=text">View as plain text</a></p>
+
+<div id="footer">
+Build version go1.14.<br>
+Except as <a href="https://developers.google.com/site-policies#restrictions">noted</a>,
+the content of this page is licensed under the
+Creative Commons Attribution 3.0 License,
+and code is licensed under a <a href="http://localhost:6060/LICENSE">BSD license</a>.<br>
+<a href="http://localhost:6060/doc/tos.html">Terms of Service</a> |
+<a href="http://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
+</div>
+
+</div><!-- .container -->
+</div><!-- #page -->
+
+</body>
+</html>
+
