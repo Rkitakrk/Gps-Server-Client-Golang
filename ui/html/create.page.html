@@ -1,0 +1,27 @@
+{{template "base" .}}
+{{define "title"}}Create new Post{{end}}
+
+{{define "body"}}
+    <form action="/post/create" method="post">
+        <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+        {{with .Form}}
+        <div>
+            <label for="">Title:</label>
+            {{with .Errors.Get "title"}}
+                <label class="error">{{.}}</label>
+            {{end}}
+            <input type="text" name="title" value='{{.Get "title"}}'>
+        </div>
+        <div>
+            {{with .Errors.Get "content"}}
+                <label class="error">{{.}}</label>
+            {{end}}
+            <label for="">Content:</label>
+            <textarea name="content" value='{{.Get "content"}}'></textarea>
+        </div>
+        <div>
+            <input type="submit" value="Publish post!">
+        </div>
+        {{end}}
+    </form>
+{{end}}
